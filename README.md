@@ -322,7 +322,7 @@ curl -X POST "http://127.0.0.1:8000/operacao_matematica?operacao=multiplicacao&a
 **Valores aceitos para `operacao`:**
 
 | Valor            | Operação        |
-|------------------|-----------------| 
+|------------------|-----------------|
 | `soma`           | Adição          |
 | `subtracao`      | Subtração       |
 | `multiplicacao`  | Multiplicação   |
