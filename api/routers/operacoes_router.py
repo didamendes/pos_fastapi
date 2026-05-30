@@ -10,7 +10,7 @@ router = fastapi.APIRouter()
     summary="Soma dois números inteiros",
     description="Recebe dois números inteiros e retorna a soma",
 )
-def soma(numero1: int, numero2: int):
+async def soma(numero1: int, numero2: int):
     total = numero1 + numero2
     return {"resultado": total}
 
@@ -20,7 +20,7 @@ def soma(numero1: int, numero2: int):
     summary="Soma dois números inteiros",
     description="Recebe dois números inteiros e retorna a soma",
 )
-def soma_formato2(numero1: int, numero2: int):
+async def soma_formato2(numero1: int, numero2: int):
     total = numero1 + numero2
     return {"resultado": total}
 
@@ -32,13 +32,13 @@ def soma_formato2(numero1: int, numero2: int):
     status_code=fastapi.status.HTTP_200_OK,
     deprecated=False,
 )
-def soma_formato3(numeros: Numeros):
+async def soma_formato3(numeros: Numeros):
     total = numeros.numero1 + numeros.numero2
     return {"resultado": total}
 
 
 @router.post("/operacao_matematica")
-def operacao_matematica(numeros: Numeros, operacao: TipoOperacao):
+async def operacao_matematica(numeros: Numeros, operacao: TipoOperacao):
     global resultado
     if operacao == TipoOperacao.soma:
         resultado = numeros.numero1 + numeros.numero2
