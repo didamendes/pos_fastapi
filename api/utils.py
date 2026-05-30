@@ -1,14 +1,11 @@
 import os
 
-from dotenv import load_dotenv
 import fastapi
 from groq import Groq
 
 from api.models import Historia
 
-API_TOKEN = "123"
-
-load_dotenv()
+API_TOKEN = str(os.getenv("API_TOKEN")),
 
 client = Groq(
     api_key= os.getenv("GROQ_API_KEY")
