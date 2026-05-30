@@ -4,23 +4,26 @@ from api.models import Numeros, TipoOperacao
 
 router = fastapi.APIRouter()
 
+
 @router.get(
     path="/soma/{numero1}/{numero2}",
     summary="Soma dois números inteiros",
-    description="Recebe dois números inteiros e retorna a soma"
+    description="Recebe dois números inteiros e retorna a soma",
 )
 def soma(numero1: int, numero2: int):
     total = numero1 + numero2
     return {"resultado": total}
 
+
 @router.post(
     path="/soma_formato2",
     summary="Soma dois números inteiros",
-    description="Recebe dois números inteiros e retorna a soma"
+    description="Recebe dois números inteiros e retorna a soma",
 )
 def soma_formato2(numero1: int, numero2: int):
     total = numero1 + numero2
     return {"resultado": total}
+
 
 @router.post(
     path="/soma_formato3",
@@ -32,6 +35,7 @@ def soma_formato2(numero1: int, numero2: int):
 def soma_formato3(numeros: Numeros):
     total = numeros.numero1 + numeros.numero2
     return {"resultado": total}
+
 
 @router.post("/operacao_matematica")
 def operacao_matematica(numeros: Numeros, operacao: TipoOperacao):
