@@ -150,7 +150,7 @@ Todas as rotas da API são protegidas por um **API Token** global, configurado c
 Para acessar qualquer endpoint, é necessário enviar o parâmetro `api_token` na query string:
 
 ```
-GET /teste?api_token=123
+GET /teste?api_token=
 ```
 
 Se o token for inválido ou não fornecido, a API retorna:
@@ -176,7 +176,7 @@ Retorna uma mensagem de teste.
 **Exemplo de requisição:**
 
 ```
-GET /teste?api_token=123
+GET /teste?api_token=
 ```
 
 **Resposta:**
@@ -205,7 +205,7 @@ Realiza a soma de dois números inteiros passados como **parâmetros de caminho*
 **Exemplo de requisição:**
 
 ```
-GET /soma/5/3?api_token=123
+GET /soma/5/3?api_token=
 ```
 
 **Resposta:**
@@ -234,7 +234,7 @@ Realiza a soma de dois números inteiros passados como **query parameters**.
 **Exemplo de requisição:**
 
 ```
-POST /soma_formato2?numero1=5&numero2=3&api_token=123
+POST /soma_formato2?numero1=5&numero2=3&api_token=
 ```
 
 **Resposta:**
@@ -267,7 +267,7 @@ Realiza a soma de dois números inteiros enviados no **corpo da requisição** u
 **Exemplo com cURL:**
 
 ```bash
-curl -X POST "http://127.0.0.1:8000/soma_formato3?api_token=123" \
+curl -X POST "http://127.0.0.1:8000/soma_formato3?api_token=" \
   -H "Content-Type: application/json" \
   -d '{"numero1": 5, "numero2": 3}'
 ```
@@ -306,7 +306,7 @@ Realiza uma operação matemática (soma, subtração, multiplicação ou divis�
 **Exemplo com cURL:**
 
 ```bash
-curl -X POST "http://127.0.0.1:8000/operacao_matematica?operacao=multiplicacao&api_token=123" \
+curl -X POST "http://127.0.0.1:8000/operacao_matematica?operacao=multiplicacao&api_token=" \
   -H "Content-Type: application/json" \
   -d '{"numero1": 10, "numero2": 4}'
 ```
@@ -351,7 +351,7 @@ Gera uma história criativa utilizando **Inteligência Artificial** (modelo **LL
 **Exemplo com cURL:**
 
 ```bash
-curl -X POST "http://127.0.0.1:8000/gerar_historia?api_token=123" \
+curl -X POST "http://127.0.0.1:8000/gerar_historia?api_token=" \
   -H "Content-Type: application/json" \
   -d '{"tema": "um astronauta perdido em Marte"}'
 ```
