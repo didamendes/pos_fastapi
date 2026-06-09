@@ -7,7 +7,7 @@ Execute com:
     python exemplo_uso.py
 """
 
-from client import APIClient, TipoOperacao, APIError, TokenInvalidoError
+from client import APIClient, APIError, TipoOperacao, TokenInvalidoError
 
 # -----------------------------------------------------------
 # 1. Instanciar o cliente
@@ -21,22 +21,22 @@ client = APIClient(
 # 2. Operações matemáticas
 # -----------------------------------------------------------
 
-# GET /soma/{numero1}/{numero2}
+# GET /operacoes/soma/{numero1}/{numero2}
 resultado = client.soma(10, 5)
-print(f"soma (path params):      {resultado}")  # 15
+print(f"soma (path params):   {resultado}")  # 15.0
 
-# POST /soma_formato2  (query params)
+# POST /operacoes/soma (query params)
 resultado = client.soma_formato2(20, 3)
-print(f"soma_formato2 (query):   {resultado}")  # 23
+print(f"soma (query params):  {resultado}")  # 23.0
 
-# POST /soma_formato3  (body JSON)
+# POST /operacoes/soma (body JSON)
 resultado = client.soma_formato3(7, 8)
-print(f"soma_formato3 (body):    {resultado}")  # 15
+print(f"soma (body JSON):     {resultado}")  # 15.0
 
-# POST /operacao_matematica
+# POST /operacoes/calcular
 for op in TipoOperacao:
     resultado = client.operacao_matematica(10, 2, op)
-    print(f"operacao_matematica ({op.value:>14}): {resultado}")
+    print(f"calcular ({op.value:>14}): {resultado}")
 
 # -----------------------------------------------------------
 # 3. IA — Gerar história

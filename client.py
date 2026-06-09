@@ -21,18 +21,17 @@ Uso básico::
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 import requests
-
 
 # ---------------------------------------------------------------------------
 # Tipos públicos (espelham os models da API)
 # ---------------------------------------------------------------------------
 
 
-class TipoOperacao(str, Enum):
+class TipoOperacao(StrEnum):
     """
     Operações matemáticas suportadas pelo endpoint /operacao_matematica.
 
@@ -191,9 +190,7 @@ class APIClient:
             timeout=self.timeout,
         )
         if response.status_code == 401:
-            raise TokenInvalidoError(
-                401, response.json().get("detail", "Token inválido")
-            )
+            raise TokenInvalidoError(401, response.json().get("detail", "Token inválido"))
         if response.status_code >= 400:
             try:
                 detail = response.json().get("detail", response.text)
@@ -238,7 +235,7 @@ class APIClient:
         """
         data = self._request(
             "GET",
-            f"/soma/{numero1}/{numero2}",
+            f"/operacoes/soma/{numero1}/{numero2}",
             params=self._params_auth(),
         )
         return data["resultado"]
@@ -275,7 +272,7 @@ class APIClient:
         """
         data = self._request(
             "POST",
-            "/soma_formato2",
+            "/operacoes/soma",
             params=self._params_auth({"numero1": numero1, "numero2": numero2}),
         )
         return data["resultado"]
@@ -313,7 +310,7 @@ class APIClient:
         """
         data = self._request(
             "POST",
-            "/soma_formato3",
+            "/operacoes/soma",
             params=self._params_auth(),
             json={"numero1": numero1, "numero2": numero2},
         )
@@ -385,7 +382,7 @@ class APIClient:
         """
         data = self._request(
             "POST",
-            "/operacao_matematica",
+            "/operacoes/calcular",
             params=self._params_auth({"operacao": operacao.value}),
             json={"numero1": numero1, "numero2": numero2},
         )
@@ -442,7 +439,7 @@ class APIClient:
         """
         data = self._request(
             "POST",
-            "/gerar_historia",
+            "/ia/gerar_historia",
             params=self._params_auth(),
             json={"tema": tema},
         )

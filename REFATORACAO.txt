@@ -1,0 +1,122 @@
+================================================================================
+REFATORACAO DO PROJETO POS_FASTAPI — BOAS PRATICAS
+================================================================================
+Data: Junho/2026
+
+--------------------------------------------------------------------------------
+CONTEXTO
+--------------------------------------------------------------------------------
+O projeto e uma API FastAPI com autenticacao JWT, operacoes matematicas e
+geracao de historias via LLM (Groq). O codigo ja funcionava antes das
+mudancas abaixo.
+
+--------------------------------------------------------------------------------
+O QUE FOI MELHORADO
+--------------------------------------------------------------------------------
+
+1. api/config.py  [NOVO]
+   - Centraliza TODAS as variaveis de ambiente em uma unica classe Settings
+   - Usa @lru_cache para evitar releitura repetida do .env
+   - Contem: SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES,
+             API_TOKEN, GROQ_API_KEY
+
+2. api/security.py  [NOVO]
+   - Isolou a camada de seguranca JWT num modulo dedicado
+   - Funcoes: verificar_senha, gerar_hash_senha, buscar_usuario,
+              autenticar_usuario, criar_access_token,
+              get_current_user, get_current_active_user
+   - Tambem guarda o fake_users_db (banco de dados falso de exemplo)
+
+3. api/models.py  [MODIFICADO]
+   - Agora contem TODOS os schemas Pydantic da aplicacao
+   - Adicionados: Token, TokenData, User, UserInDB (antes estavam em auth_router)
+   - Adicionados: ResultadoOperacao, HistoriaResponse (schemas de resposta)
+
+4. api/utils.py  [MODIFICADO]
+   - Corrigido typo: gerar_historio -> gerar_historia
+   - Removido common_api_token (importado mas nunca utilizado como dependencia)
+   - Cliente Groq agora usa configuracoes via get_settings()
+
+5. api/main.py  [MODIFICADO]
+   - FastAPI() agora tem metadados: title, description, version, contact
+   - Adicionado lifespan (substituto moderno de @app.on_event)
+   - Adicionado CORS middleware
+   - Imports organizados (sem # noqa: E402, sem load_dotenv no meio)
+   - Removida importacao nao utilizada de common_api_token
+
+6. api/routers/auth_router.py  [MODIFICADO]
+   - Usa modelos de api.models e funcoes de api.security
+   - Removidos os ~150 linhas de codigo que nao eram responsabilidade do router
+   - Adicionado response_model=Token no endpoint de login
+
+7. api/routers/operacoes_router.py  [MODIFICADO]
+   - REMOVIDO o anti-padrao "global resultado" (variavel agora e local)
+   - Adicionado prefix="/operacoes" no router -> URLs atualizadas:
+       GET  /operacoes/soma/{n1}/{n2}  (antes: /soma/{n1}/{n2})
+       POST /operacoes/soma            (antes: /soma_formato2 e /soma_formato3)
+       POST /operacoes/calcular        (antes: /operacao_matematica)
+   - Adicionado tratamento de divisao por zero (HTTP 422)
+   - Adicionado response_model=ResultadoOperacao em todos os endpoints
+   - Logica de operacao matematica simplificada com dict (sem if/elif gigante)
+
+8. api/routers/llm_router.py  [MODIFICADO]
+   - Corrigido typo: gerar_historio -> gerar_historia
+   - Adicionado prefix="/ia" no router -> URL atualizada:
+       POST /ia/gerar_historia  (antes: /gerar_historia)
+   - Adicionado response_model=HistoriaResponse
+
+9. pyproject.toml  [MODIFICADO]
+   - Adicionada secao [tool.ruff] com target-version, line-length
+   - Adicionada secao [tool.ruff.lint] com regras selecionadas
+   - Dependencias de dev (ruff, pre-commit) movidas para [dependency-groups]
+
+10. .env  [MODIFICADO]
+    - Adicionada variavel SECRET_KEY (antes estava hardcoded no auth_router.py!)
+
+11. .env.example  [NOVO]
+    - Template do .env sem segredos reais — seguro para commitar no git
+
+--------------------------------------------------------------------------------
+MUDANCAS DE URL (BREAKING CHANGES)
+--------------------------------------------------------------------------------
+As seguintes URLs mudaram com a adicao de prefixos:
+
+  ANTES                          DEPOIS
+  /soma/{n1}/{n2}         ->  /operacoes/soma/{n1}/{n2}
+  /soma_formato2          ->  /operacoes/soma
+  /soma_formato3          ->  /operacoes/soma  (consolidado)
+  /operacao_matematica    ->  /operacoes/calcular
+  /gerar_historia         ->  /ia/gerar_historia
+
+  Sem mudanca: /token, /users/me/, /users/me/items/
+
+--------------------------------------------------------------------------------
+ESTRUTURA FINAL DO PROJETO
+--------------------------------------------------------------------------------
+pos_fastapi/
+|-- api/
+|   |-- __init__.py
+|   |-- config.py       <- [NOVO] configuracoes centralizadas
+|   |-- main.py         <- [MODIFICADO] ponto de entrada limpo
+|   |-- models.py       <- [MODIFICADO] todos os schemas Pydantic
+|   |-- security.py     <- [NOVO] JWT e hashing de senhas
+|   |-- utils.py        <- [MODIFICADO] apenas utilidades LLM
+|   +-- routers/
+|       |-- __init__.py
+|       |-- auth_router.py       <- [MODIFICADO] enxuto
+|       |-- llm_router.py        <- [MODIFICADO] corrigido + prefix
+|       +-- operacoes_router.py  <- [MODIFICADO] sem global + prefix
+|-- .env                <- [MODIFICADO] + SECRET_KEY
+|-- .env.example        <- [NOVO]
+|-- pyproject.toml      <- [MODIFICADO] + configuracao ruff
++-- REFATORACAO.txt     <- este arquivo
+
+--------------------------------------------------------------------------------
+COMO RODAR
+--------------------------------------------------------------------------------
+  uv run uvicorn api.main:app --reload
+
+  Swagger UI: http://127.0.0.1:8000/docs
+  Login de teste: johndoe / secret
+
+================================================================================

@@ -1,29 +1,34 @@
-import os
+"""
+Utilitários da aplicação — integração com o LLM Groq.
+"""
 
-import fastapi
 from groq import Groq
 
+from api.config import get_settings
 from api.models import Historia
 
-API_TOKEN = str(os.getenv("API_TOKEN"))
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+settings = get_settings()
+
+_groq_client = Groq(api_key=settings.groq_api_key)
 
 
-def common_api_token(api_token: str):
-    if api_token != API_TOKEN:
-        raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_401_UNAUTHORIZED, detail="Token inválido"
-        )
-    return {"api_token": api_token}
+def gerar_historia(historia: Historia) -> str:
+    """
+    Gera uma história sobre o tema fornecido usando o modelo LLM da Groq.
 
+    Parâmetros
+    ----------
+    historia : Historia
+        Objeto com o tema da história a ser gerada.
 
-def gerar_historio(historia: Historia):
-
+    Retorna
+    -------
+    str
+        O texto da história gerada.
+    """
     prompt = f"Escreva uma historia sobre o tema: {historia.tema}"
-
-    chat_completion = client.chat.completions.create(
+    chat_completion = _groq_client.chat.completions.create(
         messages=[{"role": "user", "content": prompt}],
         model="llama-3.1-8b-instant",
     )
-
     return chat_completion.choices[0].message.content

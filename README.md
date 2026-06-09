@@ -1,6 +1,6 @@
 # 🚀 pos_fastapi
 
-Projeto desenvolvido como parte da **Pós-Graduação na UFG**, com o objetivo de estudar e praticar o desenvolvimento de APIs RESTful utilizando o framework **FastAPI**.
+Projeto desenvolvido como parte da **Pós-Graduação na UFG**, com o objetivo de estudar e praticar o desenvolvimento de APIs RESTful utilizando o framework **FastAPI** com boas práticas de mercado.
 
 ---
 
@@ -22,34 +22,37 @@ Projeto desenvolvido como parte da **Pós-Graduação na UFG**, com o objetivo d
 
 ## 📖 Sobre o Projeto
 
-Este projeto é uma API REST construída com **FastAPI**, um framework moderno, rápido e de alto desempenho para Python. Ele serve como base de estudos para a disciplina de desenvolvimento de APIs na pós-graduação, demonstrando conceitos como:
+Este projeto é uma API REST construída com **FastAPI**, demonstrando conceitos e boas práticas como:
 
-- Criação de rotas (endpoints) com métodos `GET` e `POST`
-- Parâmetros de caminho (path parameters) e query parameters
-- Validação de dados com **Pydantic** (`BaseModel` e `Field`)
-- Uso de **Enums** para restringir valores aceitos
-- Autenticação via **API Token** com dependências globais (`Depends`)
-- Tratamento de erros com `HTTPException` e códigos de status HTTP
-- Integração com **IA generativa** via API da **Groq** (modelo LLaMA 3.1)
+- Organização em pacotes com **routers**, **models**, **config** e **security** separados
+- Autenticação via **JWT (JSON Web Token)** com OAuth2 Password Flow
+- Validação de dados com **Pydantic v2** (`BaseModel`, `Field`, `StrEnum`)
+- Configurações centralizadas via arquivo `config.py` com `lru_cache`
+- Camada de segurança isolada em `security.py` (hashing de senhas, criação e validação de JWT)
+- Tratamento de erros com `HTTPException` e códigos de status HTTP semânticos
+- Integração com **IA generativa** via API da **Groq** (modelo LLaMA 3.1 8B)
 - Gerenciamento de variáveis de ambiente com **python-dotenv**
-- Marcação de endpoints como **deprecated**
-- Organização de endpoints por **tags**
+- Ciclo de vida da aplicação com **`lifespan`** (substituto moderno de `@app.on_event`)
+- **CORS Middleware** configurado
 - Documentação interativa automática (Swagger UI / ReDoc)
+- Linting e formatação com **Ruff**
 
 ---
 
 ## 🛠 Tecnologias Utilizadas
 
-| Tecnologia     | Versão       | Descrição                                       |
-|----------------|--------------|--------------------------------------------------|
-| Python         | >= 3.13      | Linguagem de programação                         |
-| FastAPI        | >= 0.136.1   | Framework web para construção de APIs            |
-| Pydantic       | —            | Validação e serialização de dados                |
-| Uvicorn        | >= 0.47.0    | Servidor ASGI de alto desempenho                 |
-| Groq SDK       | >= 1.2.0     | Cliente Python para a API de IA da Groq          |
-| python-dotenv  | —            | Carregamento de variáveis de ambiente via `.env`  |
-| Ruff           | >= 0.15.13   | Linter e formatter para Python                   |
-| uv             | —            | Gerenciador de pacotes e ambientes virtuais       |
+| Tecnologia    | Versão      | Descrição                                      |
+|---------------|-------------|------------------------------------------------|
+| Python        | >= 3.13     | Linguagem de programação                       |
+| FastAPI       | >= 0.136.1  | Framework web para construção de APIs          |
+| Pydantic      | v2          | Validação e serialização de dados              |
+| Uvicorn       | >= 0.47.0   | Servidor ASGI de alto desempenho               |
+| PyJWT         | >= 2.13.0   | Criação e validação de tokens JWT              |
+| pwdlib        | >= 0.3.0    | Hashing seguro de senhas (Argon2)              |
+| Groq SDK      | >= 1.2.0    | Cliente Python para a API de IA da Groq        |
+| python-dotenv | >= 1.2.2    | Carregamento de variáveis de ambiente via `.env` |
+| Ruff          | >= 0.15.13  | Linter e formatter para Python                 |
+| uv            | —           | Gerenciador de pacotes e ambientes virtuais    |
 
 ---
 
@@ -61,7 +64,7 @@ Antes de começar, verifique se você possui instalado:
 - [uv](https://docs.astral.sh/uv/getting-started/installation/) (gerenciador de pacotes)
 - [Git](https://git-scm.com/)
 
-Além disso, é necessário possuir uma **chave de API da Groq** para utilizar o endpoint de geração de histórias com IA. Crie uma conta gratuita em [console.groq.com](https://console.groq.com/) para obter sua chave.
+Além disso, é necessário possuir uma **chave de API da Groq** para utilizar o endpoint de geração de histórias. Crie uma conta gratuita em [console.groq.com](https://console.groq.com/) para obter sua chave.
 
 ---
 
@@ -74,43 +77,42 @@ Além disso, é necessário possuir uma **chave de API da Groq** para utilizar o
    cd pos_fastapi
    ```
 
-2. **Crie e ative o ambiente virtual:**
-
-   ```bash
-   uv venv
-   ```
-
-   - **Windows (PowerShell):**
-     ```powershell
-     .venv\Scripts\Activate.ps1
-     ```
-
-   - **Linux / macOS:**
-     ```bash
-     source .venv/bin/activate
-     ```
-
-3. **Instale as dependências:**
+2. **Instale as dependências:**
 
    ```bash
    uv sync
    ```
 
-4. **Configure as variáveis de ambiente** (veja a seção abaixo).
+3. **Configure as variáveis de ambiente** (veja a seção abaixo).
 
 ---
 
 ## 🔑 Variáveis de Ambiente
 
-O projeto utiliza um arquivo `.env` para armazenar configurações sensíveis. Crie o arquivo `.env` na raiz do projeto com base no exemplo abaixo:
+Copie o arquivo de exemplo e preencha com seus valores reais:
 
-```env
-GROQ_API_KEY=sua_chave_api_aqui
+```bash
+cp .env.example .env
 ```
 
-| Variável       | Descrição                                                     | Obrigatória |
-|----------------|---------------------------------------------------------------|-------------|
-| `GROQ_API_KEY` | Chave de API da Groq para acesso aos modelos de IA (LLaMA)   | ✅ Sim       |
+```env
+GROQ_API_KEY=sua_chave_api_groq_aqui
+API_TOKEN=seu_token_seguro_aqui
+SECRET_KEY=sua_chave_secreta_aqui
+```
+
+Para gerar uma `SECRET_KEY` segura:
+
+```bash
+openssl rand -hex 32
+```
+
+| Variável                   | Descrição                                              | Obrigatória |
+|----------------------------|--------------------------------------------------------|-------------|
+| `GROQ_API_KEY`             | Chave de API da Groq para acesso aos modelos de IA     | ✅ Sim      |
+| `API_TOKEN`                | Token simples de acesso à API (legado)                 | ✅ Sim      |
+| `SECRET_KEY`               | Chave secreta para assinar os tokens JWT               | ✅ Sim      |
+| `ACCESS_TOKEN_EXPIRE_MINUTES` | Tempo de expiração do JWT em minutos (padrão: 30)   | ❌ Não      |
 
 > ⚠️ **Importante:** Nunca versione o arquivo `.env` no repositório. Ele já está incluído no `.gitignore`.
 
@@ -118,287 +120,258 @@ GROQ_API_KEY=sua_chave_api_aqui
 
 ## ▶ Executando o Projeto
 
-Inicie o servidor de desenvolvimento com o comando:
+Inicie o servidor de desenvolvimento:
 
 ```bash
-fastapi dev main.py
-```
-
-Ou, alternativamente, utilizando o Uvicorn diretamente:
-
-```bash
-uvicorn main:app --reload
+uv run uvicorn api.main:app --reload
 ```
 
 A API estará disponível em: **http://127.0.0.1:8000**
 
 ### 📚 Documentação Interativa
 
-O FastAPI gera automaticamente uma documentação interativa para a API:
+O FastAPI gera automaticamente uma documentação interativa:
 
-| Ferramenta | URL                                      |
-|------------|------------------------------------------|
-| Swagger UI | http://127.0.0.1:8000/docs               |
-| ReDoc      | http://127.0.0.1:8000/redoc              |
+| Ferramenta | URL                             |
+|------------|---------------------------------|
+| Swagger UI | http://127.0.0.1:8000/docs      |
+| ReDoc      | http://127.0.0.1:8000/redoc     |
 
 ---
 
 ## 🔐 Autenticação
 
-Todas as rotas da API são protegidas por um **API Token** global, configurado como dependência do FastAPI via `Depends`.
+A API utiliza **JWT (JSON Web Token)** com o fluxo **OAuth2 Password**. Todos os endpoints de operações matemáticas e IA são protegidos.
 
-Para acessar qualquer endpoint, é necessário enviar o parâmetro `api_token` na query string:
+### Passo 1 — Obter o token
 
+```bash
+curl -X POST "http://127.0.0.1:8000/token" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=johndoe&password=secret"
 ```
-GET /teste?api_token=
-```
 
-Se o token for inválido ou não fornecido, a API retorna:
+**Resposta:**
 
 ```json
 {
-  "detail": "Token inválido"
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer"
 }
 ```
 
-**Status HTTP:** `401 Unauthorized`
+### Passo 2 — Usar o token nas requisições
+
+Inclua o token no cabeçalho `Authorization`:
+
+```
+Authorization: Bearer <token>
+```
+
+> 💡 No **Swagger UI** (`/docs`), clique em **Authorize** e insira as credenciais diretamente pela interface.
+
+**Usuário de teste disponível:**
+
+| Campo      | Valor     |
+|------------|-----------|
+| `username` | `johndoe` |
+| `password` | `secret`  |
 
 ---
 
 ## 🔗 Endpoints Disponíveis
 
-### `GET /teste`
+### Tag: Autenticação
 
-Retorna uma mensagem de teste.
+---
 
-**Tag:** —
+#### `POST /token`
+Autentica o usuário e retorna um token JWT.
 
-**Exemplo de requisição:**
+**Corpo** (`application/x-www-form-urlencoded`):
 
-```
-GET /teste?api_token=
-```
+| Campo      | Tipo     | Descrição            |
+|------------|----------|----------------------|
+| `username` | `string` | Nome de usuário      |
+| `password` | `string` | Senha do usuário     |
 
 **Resposta:**
-
 ```json
 {
-  "mensagem": " Hello World"
+  "access_token": "eyJ...",
+  "token_type": "bearer"
 }
 ```
 
 ---
 
-### `GET /soma/{numero1}/{numero2}`
-
-Realiza a soma de dois números inteiros passados como **parâmetros de caminho**.
-
-**Tag:** `Operações matemáticas`
-
-**Parâmetros de caminho:**
-
-| Parâmetro  | Tipo  | Descrição              |
-|------------|-------|------------------------|
-| `numero1`  | `int` | Primeiro número inteiro |
-| `numero2`  | `int` | Segundo número inteiro  |
-
-**Exemplo de requisição:**
-
-```
-GET /soma/5/3?api_token=
-```
+#### `GET /users/me/`
+Retorna os dados do usuário autenticado. 🔒 *Requer token*
 
 **Resposta:**
-
 ```json
 {
-  "resultado": 8
+  "username": "johndoe",
+  "email": "johndoe@example.com",
+  "full_name": "John Doe",
+  "disabled": false
 }
 ```
 
 ---
 
-### `POST /soma_formato2`
-
-Realiza a soma de dois números inteiros passados como **query parameters**.
-
-**Tag:** `Operações matemáticas`
-
-**Query parameters:**
-
-| Parâmetro  | Tipo  | Descrição              |
-|------------|-------|------------------------|
-| `numero1`  | `int` | Primeiro número inteiro |
-| `numero2`  | `int` | Segundo número inteiro  |
-
-**Exemplo de requisição:**
-
-```
-POST /soma_formato2?numero1=5&numero2=3&api_token=
-```
+#### `GET /users/me/items/`
+Retorna os itens do usuário autenticado. 🔒 *Requer token*
 
 **Resposta:**
-
 ```json
-{
-  "resultado": 8
-}
+[
+  { "item_id": "Foo", "owner": "johndoe" }
+]
 ```
 
 ---
 
-### `POST /soma_formato3` ⚠️ *Deprecated*
+### Tag: Operações matemáticas 🔒 *Requer token*
 
-Realiza a soma de dois números inteiros enviados no **corpo da requisição** usando o modelo `Numeros`.
+---
 
-> **Nota:** Este endpoint está marcado como **deprecated** e poderá ser removido em versões futuras.
+#### `GET /operacoes/soma/{numero1}/{numero2}`
+Soma dois inteiros passados como **parâmetros de caminho**.
 
-**Tag:** `Operações matemáticas`
+**Exemplo:**
+```
+GET /operacoes/soma/10/5
+```
 
-**Corpo da requisição (JSON):**
-
+**Resposta:**
 ```json
-{
-  "numero1": 5,
-  "numero2": 3
-}
+{ "resultado": 15.0 }
+```
+
+---
+
+#### `POST /operacoes/soma`
+Soma dois inteiros passados no **corpo JSON**.
+
+**Corpo:**
+```json
+{ "numero1": 10, "numero2": 5 }
+```
+
+**Resposta:**
+```json
+{ "resultado": 15.0 }
+```
+
+---
+
+#### `POST /operacoes/calcular`
+Executa uma operação matemática entre dois números.
+
+**Query parameter:**
+
+| Parâmetro  | Tipo           | Valores aceitos                                   |
+|------------|----------------|---------------------------------------------------|
+| `operacao` | `TipoOperacao` | `soma`, `subtracao`, `multiplicacao`, `divisao`   |
+
+**Corpo:**
+```json
+{ "numero1": 10, "numero2": 4 }
 ```
 
 **Exemplo com cURL:**
-
 ```bash
-curl -X POST "http://127.0.0.1:8000/soma_formato3?api_token=" \
-  -H "Content-Type: application/json" \
-  -d '{"numero1": 5, "numero2": 3}'
-```
-
-**Resposta:**
-
-```json
-{
-  "resultado": 8
-}
-```
-
----
-
-### `POST /operacao_matematica`
-
-Realiza uma operação matemática (soma, subtração, multiplicação ou divisão) entre dois números, de acordo com o tipo de operação informado via query parameter.
-
-**Tag:** `Operações matemáticas`
-
-**Query parameters:**
-
-| Parâmetro  | Tipo             | Descrição                                                |
-|------------|------------------|----------------------------------------------------------|
-| `operacao` | `TipoOperacao`   | Tipo da operação: `soma`, `subtracao`, `multiplicacao`, `divisao` |
-
-**Corpo da requisição (JSON):**
-
-```json
-{
-  "numero1": 10,
-  "numero2": 4
-}
-```
-
-**Exemplo com cURL:**
-
-```bash
-curl -X POST "http://127.0.0.1:8000/operacao_matematica?operacao=multiplicacao&api_token=" \
+curl -X POST "http://127.0.0.1:8000/operacoes/calcular?operacao=multiplicacao" \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"numero1": 10, "numero2": 4}'
 ```
 
 **Resposta:**
-
 ```json
-{
-  "resultado": 40
-}
+{ "resultado": 40.0 }
 ```
 
-**Valores aceitos para `operacao`:**
-
-| Valor            | Operação        |
-|------------------|-----------------|
-| `soma`           | Adição          |
-| `subtracao`      | Subtração       |
-| `multiplicacao`  | Multiplicação   |
-| `divisao`        | Divisão         |
+> ⚠️ Divisão por zero retorna `HTTP 422 Unprocessable Entity`.
 
 ---
 
-### `POST /gerar_historia` 🤖
+### Tag: IA 🔒 *Requer token*
 
-Gera uma história criativa utilizando **Inteligência Artificial** (modelo **LLaMA 3.1 8B** via API da **Groq**) com base em um tema fornecido pelo usuário.
+---
 
-**Tag:** —
+#### `POST /ia/gerar_historia`
+Gera uma história criativa com **Inteligência Artificial** (LLaMA 3.1 8B via Groq).
 
-**Corpo da requisição (JSON):**
-
+**Corpo:**
 ```json
-{
-  "tema": "um astronauta perdido em Marte"
-}
+{ "tema": "um astronauta perdido em Marte" }
 ```
 
-| Campo  | Tipo   | Obrigatório | Descrição                              |
-|--------|--------|-------------|----------------------------------------|
-| `tema` | `str`  | ✅ Sim       | O tema da história a ser gerada        |
-
 **Exemplo com cURL:**
-
 ```bash
-curl -X POST "http://127.0.0.1:8000/gerar_historia?api_token=" \
+curl -X POST "http://127.0.0.1:8000/ia/gerar_historia" \
+  -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json" \
   -d '{"tema": "um astronauta perdido em Marte"}'
 ```
 
 **Resposta:**
-
 ```json
 {
   "historia": "Era uma vez um astronauta chamado Lucas, que embarcou em uma missão solitária rumo a Marte..."
 }
 ```
 
-> 💡 **Nota:** Este endpoint depende da variável de ambiente `GROQ_API_KEY` configurada corretamente no arquivo `.env`.
+> 💡 Este endpoint pode levar alguns segundos, pois faz uma chamada externa à API da Groq.
 
 ---
 
 ## 📦 Modelos de Dados
 
-### `Numeros` (Pydantic BaseModel)
-
-Modelo utilizado para receber dois números inteiros no corpo das requisições.
-
+### `Numeros`
 ```python
 class Numeros(BaseModel):
     numero1: int
     numero2: int
 ```
 
-### `TipoOperacao` (Enum)
-
-Enumeração que define os tipos de operações matemáticas disponíveis.
-
+### `ResultadoOperacao`
 ```python
-class TipoOperacao(str, Enum):
+class ResultadoOperacao(BaseModel):
+    resultado: float
+```
+
+### `TipoOperacao`
+```python
+class TipoOperacao(StrEnum):
     soma = "soma"
     subtracao = "subtracao"
     multiplicacao = "multiplicacao"
     divisao = "divisao"
 ```
 
-### `Historia` (Pydantic BaseModel)
-
-Modelo utilizado para receber o tema da história a ser gerada pela IA.
-
+### `Historia`
 ```python
 class Historia(BaseModel):
-    tema: str = Field(..., description="O tema da historia a ser gerada")
+    tema: str = Field(..., description="O tema da história a ser gerada")
+```
+
+### `Token`
+```python
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+```
+
+### `User`
+```python
+class User(BaseModel):
+    username: str
+    email: str | None = None
+    full_name: str | None = None
+    disabled: bool | None = None
 ```
 
 ---
@@ -407,12 +380,29 @@ class Historia(BaseModel):
 
 ```
 pos_fastapi/
-├── .env                # Variáveis de ambiente (não versionado)
-├── .gitignore          # Regras de arquivos ignorados pelo Git
-├── main.py             # Aplicação principal com os endpoints
-├── pyproject.toml      # Configuração do projeto e dependências
-├── uv.lock             # Lock file das dependências
-└── README.md           # Documentação do projeto
+├── api/
+│   ├── __init__.py
+│   ├── config.py           # Configurações centralizadas (env vars)
+│   ├── main.py             # Ponto de entrada da aplicação
+│   ├── models.py           # Schemas Pydantic (request/response)
+│   ├── security.py         # JWT, hashing de senhas e dependências de auth
+│   ├── utils.py            # Integração com o LLM (Groq)
+│   └── routers/
+│       ├── __init__.py
+│       ├── auth_router.py       # Endpoints de autenticação
+│       ├── llm_router.py        # Endpoints de IA
+│       └── operacoes_router.py  # Endpoints de operações matemáticas
+├── .env                    # Variáveis de ambiente (não versionado)
+├── .env.example            # Template do .env (seguro para commitar)
+├── .gitignore
+├── .pre-commit-config.yaml # Hooks de pre-commit (ruff, etc.)
+├── client.py               # Biblioteca cliente de exemplo para a API
+├── docker-compose.yml
+├── Dockerfile
+├── pyproject.toml          # Configuração do projeto e dependências
+├── REFATORACAO.txt         # Histórico das melhorias aplicadas
+├── uv.lock
+└── README.md
 ```
 
 ---

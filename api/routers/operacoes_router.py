@@ -1,55 +1,57 @@
-import fastapi
+"""
+Router de operações matemáticas.
+Prefixo: /operacoes
+"""
 
-from api.models import Numeros, TipoOperacao
+from fastapi import APIRouter, HTTPException, status
 
-router = fastapi.APIRouter()
+from api.models import Numeros, ResultadoOperacao, TipoOperacao
+
+router = APIRouter(prefix="/operacoes")
 
 
 @router.get(
-    path="/soma/{numero1}/{numero2}",
-    summary="Soma dois números inteiros",
-    description="Recebe dois números inteiros e retorna a soma",
+    "/soma/{numero1}/{numero2}",
+    response_model=ResultadoOperacao,
+    summary="Soma via path",
+    description="Recebe dois inteiros na URL e retorna a soma.",
 )
-async def soma(numero1: int, numero2: int):
-    total = numero1 + numero2
-    return {"resultado": total}
+async def soma(numero1: int, numero2: int) -> ResultadoOperacao:
+    """Soma dois números recebidos como parâmetros de path."""
+    return ResultadoOperacao(resultado=numero1 + numero2)
 
 
 @router.post(
-    path="/soma_formato2",
-    summary="Soma dois números inteiros",
-    description="Recebe dois números inteiros e retorna a soma",
+    "/soma",
+    response_model=ResultadoOperacao,
+    summary="Soma via body",
+    description="Recebe dois inteiros no corpo da requisição e retorna a soma.",
+    status_code=status.HTTP_200_OK,
 )
-async def soma_formato2(numero1: int, numero2: int):
-    total = numero1 + numero2
-    return {"resultado": total}
+async def soma_body(numeros: Numeros) -> ResultadoOperacao:
+    """Soma dois números recebidos no corpo (JSON)."""
+    return ResultadoOperacao(resultado=numeros.numero1 + numeros.numero2)
 
 
 @router.post(
-    path="/soma_formato3",
-    summary="Soma dois números inteiros",
-    description="Recebe dois números inteiros e retorna a soma",
-    status_code=fastapi.status.HTTP_200_OK,
-    deprecated=False,
+    "/calcular",
+    response_model=ResultadoOperacao,
+    summary="Operação matemática",
+    description="Executa soma, subtração, multiplicação ou divisão entre dois números.",
+    status_code=status.HTTP_200_OK,
 )
-async def soma_formato3(numeros: Numeros):
-    total = numeros.numero1 + numeros.numero2
-    return {"resultado": total}
+async def operacao_matematica(numeros: Numeros, operacao: TipoOperacao) -> ResultadoOperacao:
+    """Executa a operação matemática solicitada entre dois números."""
+    if operacao == TipoOperacao.divisao and numeros.numero2 == 0:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Divisão por zero não é permitida.",
+        )
 
-
-@router.post("/operacao_matematica")
-async def operacao_matematica(numeros: Numeros, operacao: TipoOperacao):
-    global resultado
-    if operacao == TipoOperacao.soma:
-        resultado = numeros.numero1 + numeros.numero2
-
-    elif operacao == TipoOperacao.subtracao:
-        resultado = numeros.numero1 - numeros.numero2
-
-    elif operacao == TipoOperacao.multiplicacao:
-        resultado = numeros.numero1 * numeros.numero2
-
-    elif operacao == TipoOperacao.divisao:
-        resultado = numeros.numero1 / numeros.numero2
-
-    return {"resultado": resultado}
+    operacoes: dict[TipoOperacao, float] = {
+        TipoOperacao.soma: numeros.numero1 + numeros.numero2,
+        TipoOperacao.subtracao: numeros.numero1 - numeros.numero2,
+        TipoOperacao.multiplicacao: numeros.numero1 * numeros.numero2,
+        TipoOperacao.divisao: numeros.numero1 / numeros.numero2,
+    }
+    return ResultadoOperacao(resultado=operacoes[operacao])
